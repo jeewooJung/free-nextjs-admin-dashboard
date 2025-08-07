@@ -151,18 +151,87 @@ interface TaskCardsProps {
 }
 
 const TaskCards: React.FC<TaskCardsProps> = ({ tasks }) => {
+  // Task를 status별로 그룹화하고 날짜순으로 정렬
+  const groupTasksByStatus = (tasks: ClickUpTask[]) => {
+    // status별로 그룹화
+    const grouped = tasks.reduce((acc, task) => {
+      const status = task.status.status;
+      if (!acc[status]) {
+        acc[status] = [];
+      }
+      acc[status].push(task);
+      return acc;
+    }, {} as Record<string, ClickUpTask[]>);
+
+    // 각 그룹 내에서 날짜순으로 정렬 (생성일 기준)
+    Object.keys(grouped).forEach(status => {
+      grouped[status].sort((a, b) => {
+        const dateA = a.date_created ? parseInt(a.date_created) : 0;
+        const dateB = b.date_created ? parseInt(b.date_created) : 0;
+        return dateB - dateA; // 최신순
+      });
+    });
+
+    return grouped;
+  };
+
+  // Task 상태에 따른 배지 색상
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case '점수':
+        return { backgroundColor: '#B0B0B0', color: '#FFFFFF' }; // 회색
+      case '확인 중(문의)':
+        return { backgroundColor: '#8B5B9A', color: '#FFFFFF' }; // 보라색
+      case '판단 중':
+        return { backgroundColor: '#A0522D', color: '#FFFFFF' }; // 갈색
+      case '결함':
+        return { backgroundColor: '#4682B4', color: '#FFFFFF' }; // 파란색
+      case '반려(재처리)':
+        return { backgroundColor: '#DDA0DD', color: '#333333' }; // 연보라색
+      case '협의대상':
+        return { backgroundColor: '#32CD32', color: '#FFFFFF' }; // 초록색
+      case '무결함':
+        return { backgroundColor: '#B0B0B0', color: '#FFFFFF' }; // 회색
+      case '완료':
+        return { backgroundColor: '#32CD32', color: '#FFFFFF' }; // 초록색
+      default:
+        return { backgroundColor: '#FDE047', color: '#1F2937' }; // 기본 노란색
+    }
+  };
+
+  const groupedTasks = groupTasksByStatus(tasks);
+
   return (
-    <div>
+    <div className="space-y-8">
       <div className="mb-6">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
           Tasks ({tasks.length}개)
         </h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-      </div>
+      
+      {Object.entries(groupedTasks).map(([status, statusTasks]) => (
+        <div key={status} className="space-y-4">
+          {/* Status 헤더 */}
+          <div className="flex items-center gap-3 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <span 
+              className="inline-flex px-3 py-1 text-sm font-semibold rounded-full"
+              style={getStatusBadgeColor(status)}
+            >
+              {status}
+            </span>
+            <span className="text-lg font-semibold text-gray-900 dark:text-white">
+              ({statusTasks.length}개)
+            </span>
+          </div>
+          
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {statusTasks.map((task) => (
+              <TaskCard key={task.id} task={task} />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
