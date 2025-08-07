@@ -46,6 +46,11 @@ const navItems: NavItem[] = [
     icon: <PlugInIcon />,
     path: "/api-test",
   },
+  {
+    name: "ClickUp Tasks",
+    icon: <ListIcon />,
+    path: "/clickup-tasks",
+  },
 ];
 
 const othersItems: NavItem[] = [
