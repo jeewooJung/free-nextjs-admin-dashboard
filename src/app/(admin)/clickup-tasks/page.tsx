@@ -52,6 +52,12 @@ const ClickUpTasksPage: React.FC = () => {
     setError("");
 
     try {
+      console.log('Fetching tasks with settings:', {
+        apiKey: settings.apiKey.substring(0, 10) + '...',
+        listId: settings.listId,
+        spaceId: settings.spaceId
+      });
+
       const response = await fetch('/api/clickup-test', {
         method: 'POST',
         headers: {
@@ -61,23 +67,57 @@ const ClickUpTasksPage: React.FC = () => {
           apiKey: settings.apiKey,
           listId: settings.listId,
           spaceId: settings.spaceId,
-          endpoint: `https://api.clickup.com/api/v2/list/${settings.listId}/task`
+          endpoint: `https://api.clickup.com/api/v2/list/${settings.listId}/task?include_closed=true&limit=100`,
+          fetchAllPages: true
         }),
       });
 
-      const result = await response.json();
+      console.log('API response status:', response.status);
+      console.log('API response headers:', Object.fromEntries(response.headers.entries()));
+
+      // 응답 텍스트 먼저 가져와서 확인
+      const responseText = await response.text();
+      console.log('API response text length:', responseText.length);
+      console.log('API response preview:', responseText.substring(0, 200));
+
+      let result;
+      try {
+        if (responseText.trim()) {
+          result = JSON.parse(responseText);
+        } else {
+          throw new Error('빈 응답을 받았습니다.');
+        }
+      } catch (parseError) {
+        console.error('JSON 파싱 오류:', parseError);
+        throw new Error(`응답 파싱 실패: ${parseError instanceof Error ? parseError.message : '알 수 없는 오류'}`);
+      }
+
+      console.log('Parsed result:', result);
 
       if (!response.ok) {
-        throw new Error(result.error || 'API 요청에 실패했습니다.');
+        const errorMessage = result?.error || result?.details || `API 오류: ${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
       }
 
-      if (result.success && result.data && result.data.tasks) {
-        setTasks(result.data.tasks);
+      if (result.success) {
+        if (result.data && result.data.tasks && Array.isArray(result.data.tasks)) {
+          console.log(`Successfully loaded ${result.data.tasks.length} tasks`);
+          setTasks(result.data.tasks);
+        } else if (result.data && Array.isArray(result.data)) {
+          // 직접 배열이 반환된 경우
+          console.log(`Successfully loaded ${result.data.length} tasks (direct array)`);
+          setTasks(result.data);
+        } else {
+          console.warn('Unexpected data structure:', result);
+          setError('예상치 못한 데이터 형식을 받았습니다.');
+        }
       } else {
-        setError('Task 데이터를 가져오는데 실패했습니다.');
+        setError(result.error || 'API 요청은 성공했지만 success가 false입니다.');
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+      console.error('fetchTasks error:', error);
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.';
+      setError(`작업 로드 실패: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
@@ -155,7 +195,22 @@ const ClickUpTasksPage: React.FC = () => {
         {error && (
           <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded-md mb-6">
             <p className="font-medium">오류 발생:</p>
-            <p>{error}</p>
+            <p className="mb-2">{error}</p>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-sm font-medium">디버그 정보 (클릭하여 펼치기)</summary>
+              <div className="mt-2 text-xs bg-red-50 dark:bg-red-800 p-2 rounded">
+                <p><strong>설정:</strong></p>
+                {settings && (
+                  <ul className="ml-4 list-disc">
+                    <li>API Key: {settings.apiKey ? settings.apiKey.substring(0, 15) + '...' : '없음'}</li>
+                    <li>List ID: {settings.listId || '없음'}</li>
+                    <li>Space ID: {settings.spaceId || '없음'}</li>
+                  </ul>
+                )}
+                <p className="mt-2"><strong>브라우저 콘솔을 확인하여 더 자세한 정보를 확인하세요.</strong></p>
+                <p className="text-xs mt-1">F12 → Console 탭에서 추가 로그를 확인할 수 있습니다.</p>
+              </div>
+            </details>
           </div>
         )}
 

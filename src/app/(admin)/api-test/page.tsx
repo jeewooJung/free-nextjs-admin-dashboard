@@ -4,6 +4,7 @@ import { ClickUpApiTestRequest, ClickUpApiTestResponse, ClickUpApiError } from "
 
 interface ApiTestFormData extends ClickUpApiTestRequest {
   endpoint: string;
+  fetchAllPages?: boolean;
 }
 
 interface ApiResponse {
@@ -19,36 +20,60 @@ const ApiTestPage: React.FC = () => {
   // 사전 정의된 엔드포인트 옵션들
   const predefinedEndpoints = [
     {
-      name: "Get Tasks from List",
+      name: "Get All Tasks (All Pages)",
+      url: "https://api.clickup.com/api/v2/list/{listId}/task?include_closed=true&limit=100",
+      description: "모든 페이지의 작업을 자동으로 가져옵니다 (100개 이상도 가능)",
+      fetchAllPages: true,
+    },
+    {
+      name: "Get Tasks from List (All Status)",
+      url: "https://api.clickup.com/api/v2/list/{listId}/task?include_closed=true&limit=100",
+      description: "지정된 리스트의 모든 상태 작업 목록을 가져옵니다 (최대 100개)",
+      fetchAllPages: false,
+    },
+    {
+      name: "Get Tasks from List (Open Only)",
       url: "https://api.clickup.com/api/v2/list/{listId}/task",
-      description: "지정된 리스트의 작업 목록을 가져옵니다",
+      description: "지정된 리스트의 열린 작업 목록만 가져옵니다",
+      fetchAllPages: false,
+    },
+    {
+      name: "Get Tasks from List (More Results)",
+      url: "https://api.clickup.com/api/v2/list/{listId}/task?include_closed=true&limit=100&page=0",
+      description: "페이지네이션을 고려한 모든 작업 목록 (page 파라미터 조정 가능)",
+      fetchAllPages: false,
     },
     {
       name: "Get Space Details",
       url: "https://api.clickup.com/api/v2/space/{spaceId}",
       description: "스페이스 정보를 가져옵니다",
+      fetchAllPages: false,
     },
     {
       name: "Get Lists in Space",
       url: "https://api.clickup.com/api/v2/space/{spaceId}/list",
       description: "스페이스의 모든 리스트를 가져옵니다",
+      fetchAllPages: false,
     },
     {
       name: "Get List Details",
       url: "https://api.clickup.com/api/v2/list/{listId}",
       description: "리스트 정보를 가져옵니다",
+      fetchAllPages: false,
     },
     {
       name: "Custom Endpoint",
       url: "",
       description: "사용자 정의 엔드포인트를 입력합니다",
+      fetchAllPages: false,
     },
   ];
   const [formData, setFormData] = useState<ApiTestFormData>({
     spaceId: "",
     apiKey: "",
     listId: "",
-    endpoint: "https://api.clickup.com/api/v2/list/{listId}/task",
+    endpoint: "https://api.clickup.com/api/v2/list/{listId}/task?include_closed=true&limit=100",
+    fetchAllPages: true,
   });
 
   const [apiResponse, setApiResponse] = useState<ApiResponse>({
@@ -98,7 +123,8 @@ const ApiTestPage: React.FC = () => {
         spaceId: "",
         apiKey: "",
         listId: "",
-        endpoint: "https://api.clickup.com/api/v2/list/{listId}/task",
+        endpoint: "https://api.clickup.com/api/v2/list/{listId}/task?include_closed=true&limit=100",
+        fetchAllPages: true,
       });
       checkStoredSettings();
       alert('설정이 초기화되었습니다!');
@@ -184,6 +210,7 @@ const ApiTestPage: React.FC = () => {
       const newFormData = {
         ...formData,
         endpoint: selectedEndpoint.url,
+        fetchAllPages: selectedEndpoint.fetchAllPages || false,
       };
       setFormData(newFormData);
 
@@ -426,6 +453,23 @@ const ApiTestPage: React.FC = () => {
                 </div>
               </div>
 
+              <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-700 rounded-md">
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.fetchAllPages || false}
+                    onChange={(e) => setFormData({...formData, fetchAllPages: e.target.checked})}
+                    className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                    모든 페이지 가져오기 (100개 이상)
+                  </span>
+                </label>
+                <div className="text-xs text-blue-600 dark:text-blue-400">
+                  {formData.fetchAllPages ? '⚡ 자동 페이지네이션 활성화' : '📄 단일 페이지만'}
+                </div>
+              </div>
+
               <div className="flex gap-4">
                 <button
                   type="submit"
@@ -503,12 +547,45 @@ const ApiTestPage: React.FC = () => {
             <p className="mt-4"><strong>참고:</strong> 
               <br />• API Key는 ClickUp Personal Access Token을 사용하세요 (pk_로 시작)
               <br />• 토큰 생성: ClickUp → Settings → Apps → API Token
+              <br />• <strong>완료된 작업 보기:</strong> include_closed=true 파라미터 사용
+              <br />• <strong>페이지네이션:</strong> limit (최대 100), page 파라미터로 조정
               <br />• <strong>ID 찾는 방법:</strong>
               <br />  - ClickUp URL 예시: https://app.clickup.com/123456/v/li/987654321
               <br />  - Space ID: 123456 (숫자만)
               <br />  - List ID: 987654321 (숫자만)
               <br />• 잘못된 형식: "8crb1jk-29098" (하이픈이나 문자 포함 불가)
             </p>
+          </div>
+        </div>
+
+        {/* ClickUp API 파라미터 가이드 */}
+        <div className="mt-6 bg-green-50 dark:bg-green-900 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">
+            📋 ClickUp API 파라미터 가이드
+          </h3>
+          <div className="text-green-800 dark:text-green-200 space-y-3">
+            <div>
+              <p><strong>완료된 작업 포함하기</strong></p>
+              <p className="ml-4 text-sm">• <code className="bg-green-200 dark:bg-green-800 px-1 rounded">include_closed=true</code> - 완료/닫힌 작업도 결과에 포함</p>
+              <p className="ml-4 text-sm">• 기본값: false (완료된 작업은 제외됨)</p>
+            </div>
+            <div>
+              <p><strong>결과 개수 제한</strong></p>
+              <p className="ml-4 text-sm">• <code className="bg-green-200 dark:bg-green-800 px-1 rounded">limit=100</code> - 한 번에 가져올 최대 작업 수 (최대 100개)</p>
+              <p className="ml-4 text-sm">• 기본값: 100개</p>
+            </div>
+            <div>
+              <p><strong>🚀 모든 페이지 자동 가져오기</strong></p>
+              <p className="ml-4 text-sm">• <code className="bg-green-200 dark:bg-green-800 px-1 rounded">fetchAllPages=true</code> - 100개가 넘는 작업도 자동으로 모두 가져옵니다</p>
+              <p className="ml-4 text-sm">• 최대 10페이지(1000개 작업)까지 자동 수집</p>
+              <p className="ml-4 text-sm">• API 요청 간 100ms 지연으로 서버 부하 최소화</p>
+            </div>
+            <div>
+              <p><strong>예시 URL:</strong></p>
+              <p className="ml-4 text-sm font-mono bg-green-200 dark:bg-green-800 p-2 rounded">
+                https://api.clickup.com/api/v2/list/123456789/task?include_closed=true&limit=100&page=0
+              </p>
+            </div>
           </div>
         </div>
 
