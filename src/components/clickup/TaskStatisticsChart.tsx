@@ -167,11 +167,11 @@ export const TaskStatisticsChart: React.FC<TaskStatisticsChartProps> = ({ tasks 
 
   const series = [
     {
-      name: "Tasks Created",
+      name: "생성된 테스크",
       data: createdData,
     },
     {
-      name: "Tasks Completed",
+      name: "완료된 테스크",
       data: completedData,
     },
   ];
@@ -185,8 +185,8 @@ export const TaskStatisticsChart: React.FC<TaskStatisticsChartProps> = ({ tasks 
               <span className="block h-2.5 w-full max-w-2.5 rounded-full bg-primary"></span>
             </span>
             <div className="w-full">
-              <p className="font-semibold text-primary">Tasks Created</p>
-              <p className="text-sm font-medium">Trend over last 12 months</p>
+              <p className="font-semibold text-primary">생성된 테스크</p>
+              <p className="text-sm font-medium">지난 12개월 추세</p>
             </div>
           </div>
           <div className="flex min-w-47.5">
@@ -194,8 +194,8 @@ export const TaskStatisticsChart: React.FC<TaskStatisticsChartProps> = ({ tasks 
               <span className="block h-2.5 w-full max-w-2.5 rounded-full bg-secondary"></span>
             </span>
             <div className="w-full">
-              <p className="font-semibold text-secondary">Tasks Completed</p>
-              <p className="text-sm font-medium">Completion trend</p>
+              <p className="font-semibold text-secondary">완료된 테스크</p>
+              <p className="text-sm font-medium">완료 추세</p>
             </div>
           </div>
         </div>

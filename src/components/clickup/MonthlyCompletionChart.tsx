@@ -118,7 +118,7 @@ export const MonthlyCompletionChart: React.FC<MonthlyCompletionChartProps> = ({ 
 
   const series = [
     {
-      name: "Completed Tasks",
+      name: "완료된 테스크",
       data: data,
     },
   ];
@@ -128,10 +128,10 @@ export const MonthlyCompletionChart: React.FC<MonthlyCompletionChartProps> = ({ 
       <div className="mb-4 justify-between gap-4 sm:flex">
         <div>
           <h4 className="text-xl font-semibold text-black dark:text-white">
-            Monthly Task Completion
+            월별 테스크 완료 현황
           </h4>
           <p className="text-sm text-meta-3">
-            Number of tasks completed per month in {new Date().getFullYear()}
+            {new Date().getFullYear()}년 월별 완료된 테스크 수
           </p>
         </div>
       </div>

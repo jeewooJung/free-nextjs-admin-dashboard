@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { TaskSummaryTable } from "@/components/clickup/TaskSummaryTable";
+import { TaskSummaryInfo } from "@/components/clickup/TaskSummaryInfo";
+import { DefectListTables } from "@/components/clickup/DefectListTables";
 import { ClickUpMetrics } from "@/components/clickup/ClickUpMetrics";
-import { StatusCounts } from "@/components/clickup/StatusCounts";
 import { MonthlyCompletionChart } from "@/components/clickup/MonthlyCompletionChart";
 import { TaskStatisticsChart } from "@/components/clickup/TaskStatisticsChart";
-import { ClickUpTaskTable } from "@/components/clickup/ClickUpTaskTable";
 
 interface ClickUpTask {
   id: string;
@@ -196,51 +197,53 @@ export default function Dashboard() {
       <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-black dark:text-white mb-2">
-            ClickUp Task Dashboard
+            Hi-Builder 구축 2차
           </h1>
           <p className="text-meta-3">
-            Comprehensive overview of your task management data
+            ClickUp 테스크 관리 대시보드
           </p>
         </div>
       </div>
 
-      {/* Metrics Section */}
-      <ClickUpMetrics tasks={tasks} />
+      {/* 총 접수 현황 및 상태별 설명 */}
+      <TaskSummaryTable tasks={tasks} />
 
-      {/* Status Counts Section */}
-      <StatusCounts tasks={tasks} />
+      {/* 접수 총괄 및 결함 조치 기간 */}
+      <TaskSummaryInfo tasks={tasks} />
 
-      {/* Charts Section */}
+      {/* Charts Section - 월별 완료 및 통계 */}
       <div className="grid grid-cols-12 gap-4 md:gap-6">
-        <MonthlyCompletionChart tasks={tasks} />
+        <div className="col-span-12 xl:col-span-6">
+          <MonthlyCompletionChart tasks={tasks} />
+        </div>
         
-        <div className="col-span-12 xl:col-span-5">
+        <div className="col-span-12 xl:col-span-6">
           <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark h-full">
             <div className="text-center">
               <div className="text-6xl mb-4">📊</div>
-              <h4 className="text-xl font-semibold text-black dark:text-white mb-2">
-                Quick Stats
+              <h4 className="text-xl font-semibold text-black dark:text-white mb-4">
+                주요 통계
               </h4>
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-meta-3">Total Tasks:</span>
-                  <span className="font-semibold">{tasks.length}</span>
+                <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-meta-4 rounded">
+                  <span className="text-meta-3">총 접수:</span>
+                  <span className="font-semibold text-lg">{tasks.length}건</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-meta-3">Completed:</span>
-                  <span className="font-semibold text-green-600">
-                    {tasks.filter(t => t.status.status === "완료").length}
+                <div className="flex justify-between items-center p-3 bg-green-50 dark:bg-meta-4 rounded">
+                  <span className="text-meta-3">완료:</span>
+                  <span className="font-semibold text-lg text-green-600">
+                    {tasks.filter(t => t.status.status === "완료").length}건
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-meta-3">In Progress:</span>
-                  <span className="font-semibold text-blue-600">
-                    {tasks.filter(t => t.status.status !== "완료").length}
+                <div className="flex justify-between items-center p-3 bg-blue-50 dark:bg-meta-4 rounded">
+                  <span className="text-meta-3">진행중:</span>
+                  <span className="font-semibold text-lg text-blue-600">
+                    {tasks.filter(t => t.status.status !== "완료").length}건
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-meta-3">Completion Rate:</span>
-                  <span className="font-semibold text-primary">
+                <div className="flex justify-between items-center p-3 bg-yellow-50 dark:bg-meta-4 rounded">
+                  <span className="text-meta-3">완료율:</span>
+                  <span className="font-semibold text-lg text-yellow-600">
                     {tasks.length > 0 
                       ? Math.round((tasks.filter(t => t.status.status === "완료").length / tasks.length) * 100)
                       : 0}%
@@ -252,46 +255,37 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Statistics Chart */}
+      {/* 전체 통계 차트 */}
       <TaskStatisticsChart tasks={tasks} />
 
-      {/* Task List Display */}
-      <div className="grid grid-cols-12 gap-4 md:gap-6">
-        <ClickUpTaskTable tasks={tasks} />
-        
-        <div className="col-span-12 xl:col-span-5">
-          <div className="rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <h4 className="text-xl font-semibold text-black dark:text-white mb-4">
-              Actions
-            </h4>
-            <div className="space-y-3">
-              <button
-                onClick={fetchTasks}
-                className="w-full flex items-center justify-center rounded-md bg-primary px-4 py-2 text-center font-medium text-white hover:bg-opacity-90"
-              >
-                🔄 Refresh Data
-              </button>
-              <a
-                href="/clickup-tasks"
-                className="w-full flex items-center justify-center rounded-md border border-primary px-4 py-2 text-center font-medium text-primary hover:bg-primary hover:text-white transition-colors"
-              >
-                📋 View All Tasks
-              </a>
-              <a
-                href="/api-test"
-                className="w-full flex items-center justify-center rounded-md border border-stroke px-4 py-2 text-center font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-meta-4 transition-colors"
-              >
-                ⚙️ Settings
-              </a>
-            </div>
-            
-            <div className="mt-6 pt-6 border-t border-stroke dark:border-strokedark">
-              <h5 className="font-semibold text-black dark:text-white mb-2">
-                Last Updated
-              </h5>
-              <p className="text-sm text-meta-3">
-                {new Date().toLocaleString('ko-KR')}
-              </p>
+      {/* 결함 조치 리스트 */}
+      <DefectListTables tasks={tasks} />
+
+      {/* 액션 버튼들 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <button
+          onClick={fetchTasks}
+          className="flex items-center justify-center rounded-md bg-primary px-4 py-3 text-center font-medium text-white hover:bg-opacity-90 transition-colors"
+        >
+          🔄 데이터 새로고침
+        </button>
+        <a
+          href="/clickup-tasks"
+          className="flex items-center justify-center rounded-md border border-primary px-4 py-3 text-center font-medium text-primary hover:bg-primary hover:text-white transition-colors"
+        >
+          📋 전체 테스크 보기
+        </a>
+        <a
+          href="/api-test"
+          className="flex items-center justify-center rounded-md border border-stroke px-4 py-3 text-center font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-meta-4 transition-colors"
+        >
+          ⚙️ API 설정
+        </a>
+        <div className="flex items-center justify-center rounded-md border border-stroke px-4 py-3 text-center">
+          <div className="text-center">
+            <div className="text-sm font-medium text-black dark:text-white">마지막 업데이트</div>
+            <div className="text-xs text-meta-3">
+              {new Date().toLocaleString('ko-KR')}
             </div>
           </div>
         </div>
