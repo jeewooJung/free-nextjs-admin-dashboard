@@ -20,12 +20,12 @@ interface ClickUpMetricsProps {
 
 const statusColors: Record<string, string> = {
   "미확인": "#FF6B6B",
-  "확인 중": "#4ECDC4", 
-  "판단 중": "#45B7D1",
-  "결함": "#96CEB4",
-  "무결함": "#FECA57",
-  "반려": "#FF9FF3",
-  "완료": "#54A0FF",
+  "확인 중(문의)": "#8B5B9A", 
+  "판단 중": "#A0522D",
+  "결함": "#4682B4",
+  "무결함": "#B0B0B0",
+  "반려(재처리)": "#DDA0DD",
+  "완료": "#32CD32",
   "default": "#74b9ff"
 };
 

@@ -96,15 +96,29 @@ export default function Dashboard() {
     setError(null);
 
     try {
-      const queryParams = new URLSearchParams({
-        apiKey: settings.apiKey,
-        spaceId: settings.spaceId,
+      console.log('🚀 Dashboard: Fetching tasks with settings:', {
+        apiKey: settings.apiKey.substring(0, 10) + '...',
         listId: settings.listId,
-        fetchAllPages: 'true'
+        spaceId: settings.spaceId
       });
 
-      const response = await fetch(`/api/clickup-tasks?${queryParams}`);
-      
+      // ClickUp Tasks 페이지와 동일한 API 사용
+      const response = await fetch('/api/clickup-test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apiKey: settings.apiKey,
+          listId: settings.listId,
+          spaceId: settings.spaceId,
+          endpoint: `https://api.clickup.com/api/v2/list/${settings.listId}/task?include_closed=true&limit=100`,
+          fetchAllPages: true
+        }),
+      });
+
+      console.log('📡 Dashboard API response status:', response.status);
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -115,15 +129,36 @@ export default function Dashboard() {
         throw new Error('Empty response from API');
       }
 
-      const data = JSON.parse(responseText);
-      
-      if (data.error) {
-        throw new Error(data.error);
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Dashboard JSON parsing error:', parseError);
+        console.error('📄 Response text:', responseText.substring(0, 200) + '...');
+        throw new Error('Failed to parse JSON response');
       }
 
-      setTasks(data.tasks || []);
+      console.log('✅ Dashboard parsed result:', result);
+
+      if (result.success) {
+        let tasksData = [];
+        if (result.data && result.data.tasks && Array.isArray(result.data.tasks)) {
+          tasksData = result.data.tasks;
+          console.log(`✅ Dashboard: Successfully loaded ${tasksData.length} tasks`);
+        } else if (result.data && Array.isArray(result.data)) {
+          tasksData = result.data;
+          console.log(`✅ Dashboard: Successfully loaded ${tasksData.length} tasks (direct array)`);
+        } else {
+          console.warn('⚠️ Dashboard: Unexpected data structure:', result);
+          throw new Error('Unexpected data structure received');
+        }
+        
+        setTasks(tasksData);
+      } else {
+        throw new Error(result.error || 'API request succeeded but success was false');
+      }
     } catch (error: any) {
-      console.error('Error fetching tasks:', error);
+      console.error('💥 Dashboard fetchTasks error:', error);
       setError(error.message || 'Failed to fetch tasks');
     } finally {
       setLoading(false);

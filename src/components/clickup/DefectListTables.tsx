@@ -64,7 +64,7 @@ export const DefectListTables: React.FC<DefectListTablesProps> = ({ tasks }) => 
 
   // 긴급 결함 (임의로 최근 생성된 결함들 중 일부를 긴급으로 분류)
   const urgentDefects = tasks
-    .filter(task => task.status.status === "결함" || task.status.status === "판정 중")
+    .filter(task => task.status.status === "결함" || task.status.status === "판단 중")
     .sort((a, b) => new Date(b.date_created).getTime() - new Date(a.date_created).getTime())
     .slice(0, 3);
 
